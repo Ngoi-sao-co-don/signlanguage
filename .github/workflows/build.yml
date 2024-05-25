@@ -13,7 +13,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v2
       with:
-        python-version: '3.11.4'
+        python-version: '3.x'
 
     - name: Install build dependencies
       run: |
@@ -30,17 +30,19 @@ jobs:
     - name: Download and setup Android SDK
       run: |
         sudo mkdir -p /usr/local/lib/android/sdk
-        sudo wget -q "https://dl.google.com/android/repository/commandlinetools-linux-6858069_latest.zip" -O android-sdk.zip
-        sudo unzip -q android-sdk.zip -d /usr/local/lib/android/sdk
-        sudo rm android-sdk.zip
+        wget -q "https://dl.google.com/android/repository/commandlinetools-linux-6858069_latest.zip" -O commandlinetools.zip
+        sudo unzip -q commandlinetools.zip -d /usr/local/lib/android/sdk/cmdline-tools
+        sudo mv /usr/local/lib/android/sdk/cmdline-tools/cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
+        rm commandlinetools.zip
         export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
-        export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/bin:$ANDROID_SDK_ROOT/platform-tools
-        yes | sdkmanager --licenses
-        sdkmanager "platform-tools" "platforms;android-29" "build-tools;29.0.3"
+        export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools
+        yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses
+        /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-29" "build-tools;29.0.3"
 
     - name: Build the APK
       env:
         ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+        PATH: $PATH:/usr/local/lib/android/sdk/cmdline-tools/latest/bin:/usr/local/lib/android/sdk/platform-tools
       run: |
         buildozer android debug
 
@@ -49,3 +51,4 @@ jobs:
       with:
         name: my-app
         path: bin/*.apk
+
