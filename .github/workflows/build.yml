@@ -11,11 +11,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      # used to cache dependencies with a timeout
       - name: Get Date
         id: get-date
-        run: |
-          echo "::set-output name=date::$(/bin/date -u '+%Y%m%d')"
+        run: echo "::set-output name=date::$(/bin/date -u '+%Y%m%d')"
         shell: bash
 
       - name: Set up Python
@@ -76,4 +74,3 @@ jobs:
         with:
           name: package
           path: ${{ steps.buildozer.outputs.filename }}
-
