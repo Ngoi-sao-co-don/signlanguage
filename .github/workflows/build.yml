@@ -1,42 +1,51 @@
-name: CI
-on:
-  push:
-    branches: [ main ]
+name: Build Kivy App
+
+on: [push]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+    - name: Checkout repository
+      uses: actions/checkout@v2
 
-      # used to cache dependencies with a timeout
-      - name: Get Date
-        id: get-date
-        run: |
-          echo "::set-output name=date::$(/bin/date -u "+%Y%m%d")"
-        shell: bash
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.11.4'
 
-      - name: Cache Buildozer global directory
-        uses: actions/cache@v2
-        with:
-          path: .buildozer_global
-          key: buildozer-global-${{ hashFiles('buildozer.spec') }} # Replace with your path
+    - name: Install build dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y python3-pip git
+        pip install --upgrade pip
+        pip install buildozer cython virtualenv
 
-      - uses: actions/cache@v2
-        with:
-          path: .buildozer
-          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ hashFiles('buildozer.spec') }}
+    - name: Set up JDK 8
+      uses: actions/setup-java@v1
+      with:
+        java-version: 8
 
-      - name: Build with Buildozer
-        uses: ArtemSBulgakov/buildozer-action@v1
-        id: buildozer
-        with:
-          command: buildozer android debug
-          buildozer_version: master
+    - name: Download and setup Android SDK
+      run: |
+        sudo mkdir -p /usr/local/lib/android/sdk
+        sudo wget -q "https://dl.google.com/android/repository/commandlinetools-linux-6858069_latest.zip" -O android-sdk.zip
+        sudo unzip -q android-sdk.zip -d /usr/local/lib/android/sdk
+        sudo rm android-sdk.zip
+        export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
+        export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/bin:$ANDROID_SDK_ROOT/platform-tools
+        yes | sdkmanager --licenses
+        sdkmanager "platform-tools" "platforms;android-29" "build-tools;29.0.3"
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: package
-          path: ${{ steps.buildozer.outputs.filename }}
+    - name: Build the APK
+      env:
+        ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+      run: |
+        buildozer android debug
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v2
+      with:
+        name: my-app
+        path: bin/*.apk
