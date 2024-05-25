@@ -23,9 +23,9 @@ jobs:
 
       - name: Install build dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install python3-distutils -y
-          sudo apt-get install -y python3-pip git
+          apt-get update
+          apt-get install python3-distutils -y
+          apt-get install -y python3-pip git
           pip install --upgrade pip
           pip install setuptools buildozer cython virtualenv
 
@@ -37,15 +37,16 @@ jobs:
 
       - name: Download and setup Android SDK
         run: |
-          sudo mkdir -p /usr/local/lib/android/sdk
+          mkdir -p /usr/local/lib/android/sdk
           wget -q "https://dl.google.com/android/repository/commandlinetools-linux-6858069_latest.zip" -O commandlinetools.zip
-          sudo unzip -q commandlinetools.zip -d /usr/local/lib/android/sdk/cmdline-tools
-          sudo mv /usr/local/lib/android/sdk/cmdline-tools/cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
+          unzip -q commandlinetools.zip -d /usr/local/lib/android/sdk/cmdline-tools
+          mv /usr/local/lib/android/sdk/cmdline-tools/cmdline-tools /usr/local/lib/android/sdk/cmdline-tools/latest
           rm commandlinetools.zip
           export ANDROID_SDK_ROOT=/usr/local/lib/android/sdk
           export PATH=$PATH:$ANDROID_SDK_ROOT/cmdline-tools/latest/bin:$ANDROID_SDK_ROOT/platform-tools
           yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses
           /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-29" "build-tools;29.0.3"
+        shell: bash
 
       - name: Cache Buildozer global directory
         uses: actions/cache@v2
