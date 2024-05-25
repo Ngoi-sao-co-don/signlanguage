@@ -18,6 +18,7 @@ jobs:
     - name: Install build dependencies
       run: |
         sudo apt-get update
+        sudo apt-get install python3-distutils -y
         sudo apt-get install -y python3-pip git
         pip install --upgrade pip
         pip install buildozer cython virtualenv
